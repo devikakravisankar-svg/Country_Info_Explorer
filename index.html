@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Info Explorer</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --error: #EF4444;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            font-size: 2.5rem;
+        }
+
+        .search-box {
+            display: flex;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: var(--card-bg);
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        button {
+            padding: 1rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flag-container {
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+        }
+
+        .flag-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info {
+            padding: 1.5rem;
+        }
+
+        .country-name {
+            font-size: 1.8rem;
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+        }
+
+        .fact {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .fact:last-child {
+            border-bottom: none;
+        }
+
+        .fact-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .fact-value {
+            font-weight: 500;
+        }
+
+        .message {
+            text-align: center;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            color: var(--text-muted);
+            display: none;
+        }
+
+        .error {
+            color: var(--error);
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E5E7EB;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Country Explorer</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Enter a country name (e.g., Japan, Brazil)" autocomplete="off">
+            <button id="searchBtn">Search</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <div id="countryCard" class="card">
+            <div class="flag-container">
+                <img id="flagImg" src="" alt="Country Flag">
+            </div>
+            <div class="info">
+                <h2 id="countryName" class="country-name"></h2>
+                <div class="fact">
+                    <span class="fact-label">Capital</span>
+                    <span id="capitalValue" class="fact-value"></span>
+                </div>
+                <div class="fact">
+                    <span class="fact-label">Population</span>
+                    <span id="populationValue" class="fact-value"></span>
+                </div>
+                <div class="fact">
+                    <span class="fact-label">Currency</span>
+                    <span id="currencyValue" class="fact-value"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const countryCard = document.getElementById('countryCard');
+        const messageBox = document.getElementById('messageBox');
+        const loading = document.getElementById('loading');
+
+        const flagImg = document.getElementById('flagImg');
+        const countryName = document.getElementById('countryName');
+        const capitalValue = document.getElementById('capitalValue');
+        const populationValue = document.getElementById('populationValue');
+        const currencyValue = document.getElementById('currencyValue');
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            countryCard.style.display = 'none';
+            messageBox.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                // Try fulltext search first
+                let response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}?fullText=true`);
+                
+                // If not found, fallback to partial search
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}`);
+                        if (!response.ok) {
+                             throw new Error("Country not found. Please check the spelling.");
+                        }
+                    } else {
+                        throw new Error("Failed to fetch data.");
+                    }
+                }
+
+                const data = await response.json();
+                const country = data[0]; // Take first match
+
+                // Populate data
+                flagImg.src = country.flags.svg;
+                flagImg.alt = `Flag of ${country.name.common}`;
+                countryName.textContent = country.name.common;
+                capitalValue.textContent = country.capital ? country.capital[0] : 'N/A';
+                populationValue.textContent = country.population.toLocaleString();
+                
+                if (country.currencies) {
+                    const currencyCode = Object.keys(country.currencies)[0];
+                    const currency = country.currencies[currencyCode];
+                    currencyValue.textContent = `${currency.name} (${currency.symbol})`;
+                } else {
+                    currencyValue.textContent = 'N/A';
+                }
+
+                loading.style.display = 'none';
+                countryCard.style.display = 'block';
+
+            } catch (error) {
+                loading.style.display = 'none';
+                showMessage(error.message, true);
+            }
+        }
+
+        function showMessage(msg, isError = false) {
+            messageBox.textContent = msg;
+            messageBox.className = `message ${isError ? 'error' : ''}`;
+            messageBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
