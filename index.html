@@ -4,293 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Country Info Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --bg-color: #F3F4F6;
-            --card-bg: #FFFFFF;
-            --text-main: #1F2937;
-            --text-muted: #6B7280;
-            --error: #EF4444;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --border-radius: 12px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             min-height: 100vh;
-            margin: 0;
-            padding: 2rem;
-            box-sizing: border-box;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background-attachment: fixed;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 3rem 1.5rem; color: #F1F5F9;
         }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
+        .container { width: 100%; max-width: 480px; }
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .header h1 {
+            font-size: 2.6rem; font-weight: 700; letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #818CF8, #C084FC);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 0.4rem;
         }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--primary);
-            font-size: 2.5rem;
+        .header p { color: #94A3B8; font-size: 0.95rem; }
+        .search-wrap {
+            display: flex; margin-bottom: 1.2rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px; overflow: hidden; backdrop-filter: blur(12px);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-
-        .search-box {
-            display: flex;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            background: var(--card-bg);
+        .search-wrap:focus-within {
+            border-color: #818CF8;
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.2);
         }
-
         input {
-            flex-grow: 1;
-            padding: 1rem 1.5rem;
-            border: none;
-            font-size: 1rem;
-            outline: none;
-            color: var(--text-main);
+            flex: 1; background: transparent; border: none; outline: none;
+            padding: 1rem 1.25rem; font-size: 1rem; color: #F1F5F9;
+            font-family: inherit;
         }
-
-        input::placeholder {
-            color: var(--text-muted);
-        }
-
+        input::placeholder { color: #94A3B8; }
         button {
-            padding: 1rem 1.5rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-weight: bold;
+            background: linear-gradient(135deg, #6366F1, #4F46E5);
+            border: none; padding: 0 1.5rem; color: white;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: opacity 0.2s; letter-spacing: 0.3px;
         }
-
-        button:hover {
-            background-color: var(--primary-hover);
+        button:hover { opacity: 0.85; }
+        .hints { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center; }
+        .hint {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px; padding: 0.3rem 0.85rem;
+            font-size: 0.78rem; color: #94A3B8; cursor: pointer; transition: all 0.15s;
         }
-
+        .hint:hover { background: rgba(129,140,248,0.15); border-color: #818CF8; color: #818CF8; }
+        .msg {
+            display: none; text-align: center; padding: 1.2rem 1.5rem;
+            border-radius: 16px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); color: #94A3B8;
+            font-size: 0.95rem; backdrop-filter: blur(8px); margin-bottom: 1rem;
+        }
+        .msg.error { color: #F87171; border-color: rgba(248,113,113,0.3); }
         .card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
             display: none;
-            animation: fadeIn 0.4s ease-out;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px; overflow: hidden;
+            backdrop-filter: blur(16px); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-
-        .flag-container {
-            width: 100%;
-            height: 250px;
-            overflow: hidden;
-            border-bottom: 1px solid #E5E7EB;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f9fafb;
-        }
-
-        .flag-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .info {
-            padding: 1.5rem;
-        }
-
-        .country-name {
-            font-size: 1.8rem;
-            margin: 0 0 1rem 0;
-            color: var(--text-main);
-        }
-
+        .flag-wrap { width: 100%; height: 210px; overflow: hidden; background: #1a1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .flag-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .info { padding: 1.4rem 1.5rem 1.5rem; }
+        .country-name { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.2rem; color: #fff; }
         .fact {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #E5E7EB;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.07); gap: 1rem;
         }
-
-        .fact:last-child {
-            border-bottom: none;
-        }
-
+        .fact:last-child { border-bottom: none; }
         .fact-label {
-            font-weight: 600;
-            color: var(--text-muted);
+            font-size: 0.78rem; font-weight: 600; color: #818CF8;
+            text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap;
         }
-
-        .fact-value {
-            font-weight: 500;
-        }
-
-        .message {
-            text-align: center;
-            padding: 2rem;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            color: var(--text-muted);
-            display: none;
-        }
-
-        .error {
-            color: var(--error);
-            font-weight: bold;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 2rem;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #E5E7EB;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .fact-value { font-size: 0.95rem; font-weight: 500; color: #F1F5F9; text-align: right; }
     </style>
 </head>
 <body>
-
-    <div class="container">
+<div class="container">
+    <div class="header">
         <h1>Country Explorer</h1>
-        
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Enter a country name (e.g., Japan, Brazil)" autocomplete="off">
-            <button id="searchBtn">Search</button>
+        <p>Search any country in the world by exact name</p>
+    </div>
+    <div class="search-wrap">
+        <input id="si" type="text" placeholder="e.g. Japan, Brazil, India..." autocomplete="off" spellcheck="false">
+        <button onclick="ps()">Search</button>
+    </div>
+    <div class="hints">
+        <span class="hint" onclick="qs('Japan')">Japan</span>
+        <span class="hint" onclick="qs('United States')">United States</span>
+        <span class="hint" onclick="qs('India')">India</span>
+        <span class="hint" onclick="qs('Brazil')">Brazil</span>
+        <span class="hint" onclick="qs('Germany')">Germany</span>
+        <span class="hint" onclick="qs('Australia')">Australia</span>
+    </div>
+    <div id="msg" class="msg"></div>
+    <div id="card" class="card">
+        <div class="flag-wrap">
+            <img id="fi" src="" alt="Flag">
         </div>
-
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-        </div>
-
-        <div id="messageBox" class="message"></div>
-
-        <div id="countryCard" class="card">
-            <div class="flag-container">
-                <img id="flagImg" src="" alt="Country Flag">
-            </div>
-            <div class="info">
-                <h2 id="countryName" class="country-name"></h2>
-                <div class="fact">
-                    <span class="fact-label">Capital</span>
-                    <span id="capitalValue" class="fact-value"></span>
-                </div>
-                <div class="fact">
-                    <span class="fact-label">Population</span>
-                    <span id="populationValue" class="fact-value"></span>
-                </div>
-                <div class="fact">
-                    <span class="fact-label">Currency</span>
-                    <span id="currencyValue" class="fact-value"></span>
-                </div>
-            </div>
+        <div class="info">
+            <div id="cn" class="country-name"></div>
+            <div class="fact"><span class="fact-label">Capital</span><span id="ca" class="fact-value"></span></div>
+            <div class="fact"><span class="fact-label">Population</span><span id="po" class="fact-value"></span></div>
+            <div class="fact"><span class="fact-label">Currency</span><span id="cu" class="fact-value"></span></div>
         </div>
     </div>
+</div>
+<script>const COUNTRIES = [{"capital":"Santo Domingo de Guzm","cur":"Dominican Peso","name":"Dominican Republic","pop":10627165,"iso2":"do"},{"capital":"Yamoussoukro","cur":"CFA Franc BCEAO","name":"Ivory Coast","pop":25069229,"iso2":"ci"},{"capital":"Bamako","cur":"CFA Franc BCEAO","name":"Mali","pop":19077690,"iso2":"ml"},{"capital":"Maputo","cur":"Mozambique Metical","name":"Mozambique","pop":29495962,"iso2":"mz"},{"capital":"Lima","cur":"Peruvian Nuevo Sol","name":"Peru","pop":31989256,"iso2":"pe"},{"capital":"Peking","cur":"Yuan Renminbi","name":"China","pop":1392730000,"iso2":"cn"},{"capital":"Bishkek","cur":"Som","name":"Kyrgyzstan","pop":6322800,"iso2":"kg"},{"capital":"Honiara","cur":"Solomon Islands Dollar","name":"Solomon Islands","pop":652858,"iso2":"sb"},{"capital":"Nouakchott","cur":"Mauritanian Ouguiya","name":"Mauritania","pop":4403319,"iso2":"mr"},{"capital":"Aga","cur":"US Dollar","name":"Guam","pop":165768,"iso2":"gu"},{"capital":"Warszawa","cur":"Polish Zloty","name":"Poland","pop":37974750,"iso2":"pl"},{"capital":"Baghdad","cur":"Iraqi Dinar","name":"Iraq","pop":38433600,"iso2":"iq"},{"capital":"N/A","cur":"Pound Sterling","name":"South Georgia and the South Sandwich Islands","pop":30,"iso2":"gs"},{"capital":"George Town","cur":"Cayman Islands Dollar","name":"Cayman Islands","pop":64174,"iso2":"ky"},{"capital":"Moscow","cur":"Russian Ruble","name":"Russia","pop":144478050,"iso2":"ru"},{"capital":"Beirut","cur":"Lebanese Pound","name":"Lebanon","pop":6848925,"iso2":"lb"},{"capital":"Rangoon (Yangon)","cur":"Myanmar Kyat","name":"Myanmar","pop":53708395,"iso2":"mm"},{"capital":"Port-Louis","cur":"Mauritius Rupee","name":"Mauritius","pop":1265303,"iso2":"mu"},{"capital":"Kabul","cur":"Afghanistan Afghani","name":"Afghanistan","pop":37172386,"iso2":"af"},{"capital":"Skopje","cur":"Denar","name":"North Macedonia","pop":2084367,"iso2":"mk"},{"capital":"Abuja","cur":"Nigerian Naira","name":"Nigeria","pop":195874740,"iso2":"ng"},{"capital":"Riga","cur":"Latvian Lats","name":"Latvia","pop":1927174,"iso2":"lv"},{"capital":"Flying Fish Cove","cur":"Australian Dollar","name":"Christmas Island","pop":1402,"iso2":"cx"},{"capital":"London","cur":"Pound Sterlin","name":"England","pop":55619400,"iso2":"gb"},{"capital":"Lilongwe","cur":"Malawi Kwacha","name":"Malawi","pop":18143315,"iso2":"mw"},{"capital":"al-Manama","cur":"Bahraini Dinar","name":"Bahrain","pop":1569439,"iso2":"bh"},{"capital":"Lisboa","cur":"Euro","name":"Portugal","pop":10283822,"iso2":"pt"},{"capital":"Apia","cur":"Samoan Tala","name":"Samoa","pop":196130,"iso2":"ws"},{"capital":"New Delhi","cur":"Indian Rupee","name":"India","pop":1352617328,"iso2":"in"},{"capital":"Berlin","cur":"Euro","name":"Germany","pop":82905782,"iso2":"de"},{"pop":0,"iso2":"","name":"Vetican City","cur":"N/A","capital":"Vetican City"},{"capital":"Victoria","cur":"Hong Kong Dollar","name":"Hong Kong","pop":7451000,"iso2":"hk"},{"capital":"Kinshasa","cur":"Franc Congolais","name":"The Democratic Republic of Congo","pop":84068091,"iso2":"cd"},{"capital":"Managua","cur":"Nicaraguan Cordoba Oro","name":"Nicaragua","pop":6465513,"iso2":"ni"},{"capital":"Belgrade","cur":"Serbian dinar","name":"Serbia","pop":6963764,"iso2":"rs"},{"capital":"Basseterre","cur":"East Caribbean Dollar","name":"Saint Kitts and Nevis","pop":52441,"iso2":"kn"},{"capital":"Jerusalem","cur":"Israeli New Shekel","name":"Israel","pop":8882800,"iso2":"il"},{"capital":"Monrovia","cur":"Liberian Dollar","name":"Liberia","pop":4818977,"iso2":"lr"},{"capital":"Cairo","cur":"Egyptian Pound","name":"Egypt","pop":98423595,"iso2":"eg"},{"capital":"Conakry","cur":"Guinea Franc","name":"Guinea","pop":12414318,"iso2":"gn"},{"capital":"Doha","cur":"Qatari Rial","name":"Qatar","pop":2781677,"iso2":"qa"},{"capital":"Brasília","cur":"Brazilian Real","name":"Brazil","pop":209469333,"iso2":"br"},{"capital":"Kampala","cur":"Uganda Shilling","name":"Uganda","pop":42723139,"iso2":"ug"},{"capital":"Yerevan","cur":"Armenian Dram","name":"Armenia","pop":2951776,"iso2":"am"},{"capital":"Toskent","cur":"Uzbekistan Sum","name":"Uzbekistan","pop":32955400,"iso2":"uz"},{"capital":"Nairobi","cur":"Kenyan Shilling","name":"Kenya","pop":51393010,"iso2":"ke"},{"capital":"N/A","cur":"US Dollar","name":"United States Minor Outlying Islands","pop":300,"iso2":"um"},{"capital":"Tokyo","cur":"Japanese Yen","name":"Japan","pop":126529100,"iso2":"jp"},{"capital":"San Salvador","cur":"El Salvador Colon","name":"El Salvador","pop":6420744,"iso2":"sv"},{"capital":"Mbabane","cur":"Swaziland Lilangeni","name":"Eswatini","pop":1136191,"iso2":"sz"},{"capital":"Seoul","cur":"Korean Won","name":"South Korea","pop":51606633,"iso2":"kr"},{"capital":"N/A","cur":"US Dollar","name":"British Indian Ocean Territory","pop":0,"iso2":"io"},{"capital":"Ottawa","cur":"Canadian Dollar","name":"Canada","pop":37057765,"iso2":"ca"},{"capital":"Bandar Seri Begawan","cur":"Brunei Dollar","name":"Brunei","pop":428962,"iso2":"bn"},{"capital":"Amsterdam","cur":"Euro","name":"Netherlands","pop":17231624,"iso2":"nl"},{"capital":"Tirana","cur":"Albanian Lek","name":"Albania","pop":2866376,"iso2":"al"},{"capital":"Ashgabat","cur":"Manat","name":"Turkmenistan","pop":5850908,"iso2":"tm"},{"capital":"Monaco-Ville","cur":"Euro","name":"Monaco","pop":38682,"iso2":"mc"},{"capital":"Luanda","cur":"Angolan Kwanza","name":"Angola","pop":30809762,"iso2":"ao"},{"capital":"Lomé","cur":"CFA Franc BCEAO","name":"Togo","pop":7889094,"iso2":"tg"},{"capital":"Ankara","cur":"Turkish Lira","name":"Turkey","pop":82319724,"iso2":"tr"},{"capital":"Chisinau","cur":"Moldovan Leu","name":"Moldova","pop":2706049,"iso2":"md"},{"capital":"Valletta","cur":"Euro","name":"Malta","pop":484630,"iso2":"mt"},{"capital":"Praia","cur":"Cape Verde Escudo","name":"Cape Verde","pop":0,"iso2":"cv"},{"capital":"Zagreb","cur":"Croatian Kuna","name":"Croatia","pop":4087843,"iso2":"hr"},{"capital":"Macao","cur":"N/A","name":"Macao","pop":631636,"iso2":"mo"},{"capital":"Niamey","cur":"CFA Franc BCEAO","name":"Niger","pop":22442948,"iso2":"ne"},{"capital":"Bujumbura","cur":"Burundi Franc","name":"Burundi","pop":11175378,"iso2":"bi"},{"capital":"La Habana","cur":"Cuban Peso","name":"Cuba","pop":11338138,"iso2":"cu"},{"pop":0,"iso2":"im","name":"Isle of Man","cur":"N/A","capital":"N/A"},{"capital":"Thimphu","cur":"Bhutan Ngultrum","name":"Bhutan","pop":754394,"iso2":"bt"},{"capital":"Bern","cur":"Swiss Franc","name":"Switzerland","pop":8513227,"iso2":"ch"},{"capital":"Buenos Aires","cur":"Argentine Peso","name":"Argentina","pop":44494502,"iso2":"ar"},{"capital":"Asmara","cur":"Eritrean Nakfa","name":"Eritrea","pop":6213972,"iso2":"er"},{"capital":"Wien","cur":"Euro","name":"Austria","pop":8840521,"iso2":"at"},{"capital":"Kingston","cur":"Jamaican Dollar","name":"Jamaica","pop":2934855,"iso2":"jm"},{"capital":"Jakarta","cur":"Indonesian Rupiah","name":"Indonesia","pop":267663435,"iso2":"id"},{"capital":"Windhoek","cur":"Namibian Dollar","name":"Namibia","pop":2448255,"iso2":"na"},{"capital":"Noum","cur":"CFP Franc","name":"New Caledonia","pop":284060,"iso2":"nc"},{"capital":"Ciudad de M","cur":"Mexican Nuevo Peso","name":"Mexico","pop":126190788,"iso2":"mx"},{"capital":"Roma","cur":"Euro","name":"Italy","pop":60421760,"iso2":"it"},{"capital":"Male","cur":"Maldive Rufiyaa","name":"Maldives","pop":515696,"iso2":"mv"},{"capital":"Helsinki [Helsingfors]","cur":"Euro","name":"Finland","pop":5515525,"iso2":"fi"},{"capital":"Astana","cur":"Tenge","name":"Kazakhstan","pop":18272430,"iso2":"kz"},{"pop":0,"iso2":"","name":"Macau","cur":"Macanese Pataca","capital":"N/A"},{"capital":"Reykjavík","cur":"Iceland Krona","name":"Iceland","pop":352721,"iso2":"is"},{"capital":"Sofia","cur":"Bulgarian Lev","name":"Bulgaria","pop":7025037,"iso2":"bg"},{"capital":"Washington","cur":"US Dollar","name":"United States","pop":326687501,"iso2":"us"},{"capital":"Bruxelles [Brussel]","cur":"Euro","name":"Belgium","pop":11433256,"iso2":"be"},{"capital":"Podgorica","cur":"N/A","name":"Montenegro","pop":631219,"iso2":"me"},{"capital":"Saint George\u0027s","cur":"East Carribean Dollar","name":"Grenada","pop":111454,"iso2":"gd"},{"capital":"Citt","cur":"Euro","name":"Vatican City","pop":825,"iso2":"va"},{"capital":"Papeete","cur":"CFP Franc","name":"French Polynesia","pop":277679,"iso2":"pf"},{"capital":"Bogota","cur":"Colombian Peso","name":"Colombia","pop":49648685,"iso2":"co"},{"capital":"The Valley","cur":"East Caribbean Dollar","name":"Anguilla","pop":15094,"iso2":"ai"},{"capital":"Gibraltar","cur":"Gibraltar Pound","name":"Gibraltar","pop":33718,"iso2":"gi"},{"capital":"Bucuresti","cur":"Romanian New Leu","name":"Romania","pop":19466145,"iso2":"ro"},{"capital":"Djibouti","cur":"Djibouti Franc","name":"Djibouti","pop":958920,"iso2":"dj"},{"capital":"Koror","cur":"US Dollar","name":"Palau","pop":17907,"iso2":"pw"},{"capital":"Adamstown","cur":"N/A","name":"Pitcairn","pop":67,"iso2":"pn"},{"capital":"Dakar","cur":"CFA Franc BCEAO","name":"Senegal","pop":15854360,"iso2":"sn"},{"capital":"Masqat","cur":"Omani Rial","name":"Oman","pop":4829483,"iso2":"om"},{"capital":"Saint-Denis","cur":"Euro","name":"Reunion","pop":859959,"iso2":"re"},{"capital":"Pretoria","cur":"South African Rand","name":"South Africa","pop":57779622,"iso2":"za"},{"pop":0,"iso2":"tl","name":"Timor-Leste","cur":"N/A","capital":"N/A"},{"capital":"N\u0027Djamena","cur":"Central African","name":"Chad","pop":15477751,"iso2":"td"},{"capital":"Abu Dhabi","cur":"Arab Emirates Dirham","name":"United Arab Emirates","pop":9630959,"iso2":"ae"},{"capital":"Paramaribo","cur":"Surinam Dollar","name":"Suriname","pop":575991,"iso2":"sr"},{"capital":"N/A","cur":"Australian Dollar","name":"Heard Island and McDonald Islands","pop":0,"iso2":"hm"},{"capital":"Addis Abeba","cur":"Ethiopian Birr","name":"Ethiopia","pop":109224559,"iso2":"et"},{"capital":"Alger","cur":"Algerian Dinar","name":"Algeria","pop":42228429,"iso2":"dz"},{"capital":"Charlotte Amalie","cur":"US Dollar","name":"Virgin Islands, U.S.","pop":106977,"iso2":"vi"},{"pop":0,"iso2":"","name":"Pitcairn Islands","cur":"New Zealand Dollar","capital":"N/A"},{"capital":"Dhaka","cur":"Bangladeshi Taka","name":"Bangladesh","pop":161356039,"iso2":"bd"},{"capital":"Oslo","cur":"Norwegian Krone","name":"Norway","pop":5311916,"iso2":"no"},{"capital":"Fakaofo","cur":"New Zealand Dollar","name":"Tokelau","pop":1411,"iso2":"tk"},{"capital":"Sanaa","cur":"Yemeni Rial","name":"Yemen","pop":28498687,"iso2":"ye"},{"capital":"Ulan Bator","cur":"Mongolian Tugrik","name":"Mongolia","pop":3170208,"iso2":"mn"},{"capital":"San Juan","cur":"US Dollar","name":"Puerto Rico","pop":3195153,"iso2":"pr"},{"capital":"Manila","cur":"Philippine Peso","name":"Philippines","pop":106651922,"iso2":"ph"},{"capital":"Fagatogo","cur":"US Dollar","name":"American Samoa","pop":55465,"iso2":"as"},{"capital":"Kuala Lumpur","cur":"Malaysian Ringgit","name":"Malaysia","pop":31528585,"iso2":"my"},{"capital":"London","cur":"Pound Sterling","name":"United Kingdom","pop":66460344,"iso2":"gb"},{"capital":"Paris","cur":"Euro","name":"France","pop":66977107,"iso2":"fr"},{"capital":"Ciudad de Guatemala","cur":"Guatemalan Quetzal","name":"Guatemala","pop":17247807,"iso2":"gt"},{"capital":"Bairiki","cur":"Australian Dollar","name":"Kiribati","pop":115847,"iso2":"ki"},{"capital":"Ciudad de Panamá","cur":"Panamanian Balboa","name":"Panama","pop":4176873,"iso2":"pa"},{"capital":"Fort-de-France","cur":"Euro","name":"Martinique","pop":376480,"iso2":"mq"},{"capital":"Juba","cur":"South Sudan Pound","name":"South Sudan","pop":10975920,"iso2":"ss"},{"pop":0,"iso2":"gg","name":"Guernsey","cur":"N/A","capital":"N/A"},{"capital":"Lusaka","cur":"Zambian Kwacha","name":"Zambia","pop":17351822,"iso2":"zm"},{"capital":"Saint John\u0027s","cur":"East Caribbean Dollar","name":"Antigua and Barbuda","pop":96286,"iso2":"ag"},{"capital":"Phnom Penh","cur":"Kampuchean Riel","name":"Cambodia","pop":16249798,"iso2":"kh"},{"capital":"Canberra","cur":"Australian Dollar","name":"Australia","pop":24982688,"iso2":"au"},{"capital":"Vaduz","cur":"Swiss Franc","name":"Liechtenstein","pop":37910,"iso2":"li"},{"capital":"Kingston","cur":"Australian Dollar","name":"Norfolk Island","pop":2169,"iso2":"nf"},{"capital":"San José","cur":"Costa Rican Colon","name":"Costa Rica","pop":4999441,"iso2":"cr"},{"capital":"Jamestown","cur":"St. Helena Pound","name":"Saint Helena","pop":6600,"iso2":"sh"},{"capital":"Kigali","cur":"Rwanda Franc","name":"Rwanda","pop":12301939,"iso2":"rw"},{"capital":"Victoria","cur":"Seychelles Rupee","name":"Seychelles","pop":96762,"iso2":"sc"},{"capital":"Saint-Pierre","cur":" Euro","name":"Saint Pierre and Miquelon","pop":5888,"iso2":"pm"},{"capital":"Ouagadougou","cur":"CFA Franc BCEAO","name":"Burkina Faso","pop":19751535,"iso2":"bf"},{"capital":"Yaren","cur":"Australian Dollar","name":"Nauru","pop":12704,"iso2":"nr"},{"capital":"Tegucigalpa","cur":"Honduran Lempira","name":"Honduras","pop":9587522,"iso2":"hn"},{"capital":"Tórshavn","cur":" Danish Krone","name":"Faroe Islands","pop":48497,"iso2":"fo"},{"capital":"Tehran","cur":"Iranian Rial","name":"Iran","pop":81800269,"iso2":"ir"},{"capital":"Sarajevo","cur":"Convertible Mark","name":"Bosnia and Herzegovina","pop":3323929,"iso2":"ba"},{"capital":"N/A","cur":"Euro","name":"French Southern territories","pop":0,"iso2":"tf"},{"capital":"Cayenne","cur":"Euro","name":"French Guiana","pop":290691,"iso2":"gf"},{"capital":"Athenai","cur":"Euro","name":"Greece","pop":10731726,"iso2":"gr"},{"capital":"Vilnius","cur":"Lithuanian Litas","name":"Lithuania","pop":2801543,"iso2":"lt"},{"capital":"São Tomé","cur":" Dobra","name":"Sao Tome and Principe","pop":211028,"iso2":"st"},{"capital":"Funafuti","cur":"Australian Dollar","name":"Tuvalu","pop":11508,"iso2":"tv"},{"capital":"Asunción","cur":"Paraguay Guarani","name":"Paraguay","pop":6956071,"iso2":"py"},{"capital":"Caracas","cur":"Venezuelan Bolivar","name":"Venezuela","pop":28870195,"iso2":"ve"},{"capital":"Basse-Terre","cur":"Euro","name":"Guadeloupe","pop":395700,"iso2":"gp"},{"capital":"N/A","cur":"Norwegian Krone","name":"Bouvet Island","pop":0,"iso2":"bv"},{"capital":"Freetown","cur":"Sierra Leone Leone","name":"Sierra Leone","pop":7650154,"iso2":"sl"},{"capital":"Mata-Utu","cur":"CFP Franc","name":"Wallis and Futuna","pop":15289,"iso2":"wf"},{"capital":"Kingstown","cur":"East Caribbean Dollar","name":"Saint Vincent and the Grenadines","pop":110210,"iso2":"vc"},{"capital":"Belfast","cur":"Pound Sterling","name":"Northern Ireland","pop":1885400,"iso2":"gb"},{"capital":"Dili","cur":"US Dollar","name":"East Timor","pop":1267972,"iso2":"tl"},{"capital":"Tripoli","cur":"Libyan Dinar","name":"Libya","pop":6678567,"iso2":"ly"},{"capital":"West Island","cur":" Australian Dollar","name":"Cocos (Keeling) Islands","pop":596,"iso2":"cc"},{"capital":"Port-of-Spain","cur":"Trinidad and Tobago Dollar","name":"Trinidad and Tobago","pop":1389858,"iso2":"tt"},{"capital":"Libreville","cur":"CFA Franc BEAC","name":"Gabon","pop":2119275,"iso2":"ga"},{"capital":"Bangui","cur":"CFA Franc BEAC","name":"Central African Republic","pop":4666377,"iso2":"cf"},{"capital":"Hanoi","cur":"Vietnamese Dong","name":"Vietnam","pop":95540395,"iso2":"vn"},{"capital":"Tallinn","cur":"Euro","name":"Estonia","pop":1321977,"iso2":"ee"},{"capital":"Belmopan","cur":"Belize Dollar","name":"Belize","pop":383071,"iso2":"bz"},{"pop":0,"iso2":"je","name":"Jersey","cur":"N/A","capital":"N/A"},{"capital":"Porto-Novo","cur":"CFA Franc BCEAO","name":"Benin","pop":11485048,"iso2":"bj"},{"capital":"Tunis","cur":"Tunisian Dollar","name":"Tunisia","pop":11565204,"iso2":"tn"},{"capital":"Pyongyang","cur":"North Korean Won","name":"North Korea","pop":25549819,"iso2":"kp"},{"capital":"Colombo, Sri Jayawardenepura Kotte","cur":"Sri Lankan Rupee","name":"Sri Lanka","pop":21670000,"iso2":"lk"},{"capital":"Islamabad","cur":"Pakistan Rupee","name":"Pakistan","pop":212215030,"iso2":"pk"},{"capital":"Moroni","cur":"Comoros Franc","name":"Comoros","pop":832322,"iso2":"km"},{"capital":"Ljubljana","cur":"Euro","name":"Slovenia","pop":2073894,"iso2":"si"},{"pop":555987,"iso2":"","name":"Cabo Verde","cur":"N/A","capital":"N/A"},{"capital":"Mogadishu","cur":"Somali Shilling","name":"Somalia","pop":15008154,"iso2":"so"},{"capital":"Maseru","cur":"Lesotho Loti","name":"Lesotho","pop":2108132,"iso2":"ls"},{"capital":"Praha","cur":"Czech Koruna","name":"Czech Republic","pop":10629928,"iso2":"cz"},{"capital":"Singapore","cur":"Singapore Dollar","name":"Singapore","pop":5638676,"iso2":"sg"},{"capital":"Road Town","cur":"Pound Sterling","name":"Virgin Islands, British","pop":29802,"iso2":"vg"},{"capital":"Port-Vila","cur":"Vanuatu Vatu","name":"Vanuatu","pop":292680,"iso2":"vu"},{"capital":"Tbilisi","cur":"Georgian Lari","name":"Georgia","pop":3726549,"iso2":"ge"},{"capital":"Port-au-Prince","cur":"Haitian Gourde","name":"Haiti","pop":11123176,"iso2":"ht"},{"capital":"Mamoutzou","cur":"Euro","name":"Mayotte","pop":270372,"iso2":"yt"},{"capital":"Santiago de Chile","cur":"Chilean Peso","name":"Chile","pop":18729160,"iso2":"cl"},{"capital":"Nuuk","cur":"Danish Krone","name":"Greenland","pop":56025,"iso2":"gl"},{"capital":"Gaborone","cur":"Botswana Pula","name":"Botswana","pop":2254126,"iso2":"bw"},{"capital":"Wellington","cur":"New Zealand Dollar","name":"New Zealand","pop":4841000,"iso2":"nz"},{"capital":"Brazzaville","cur":"CFA Franc BEAC","name":"Congo","pop":5244363,"iso2":"cg"},{"capital":"San Marino","cur":"Euro","name":"San Marino","pop":33785,"iso2":"sm"},{"capital":"Bangkok","cur":"Thai Baht","name":"Thailand","pop":69428524,"iso2":"th"},{"capital":"Yaounde","cur":"CFA Franc BEAC","name":"Cameroon","pop":25216237,"iso2":"cm"},{"capital":"Cardiff","cur":"Pound Sterlin","name":"Wales","pop":3139000,"iso2":"gb"},{"capital":"Edinburgh","cur":"Pound Sterling","name":"Scotland","pop":5424800,"iso2":"gb"},{"capital":"Montevideo","cur":"Uruguayan Peso","name":"Uruguay","pop":3449299,"iso2":"uy"},{"capital":"Nicosia","cur":"Euro","name":"Cyprus","pop":1189265,"iso2":"cy"},{"capital":"Antananarivo","cur":"Malagasy Franc","name":"Madagascar","pop":26262368,"iso2":"mg"},{"capital":"La Paz","cur":"Boliviano","name":"Bolivia","pop":11353142,"iso2":"bo"},{"capital":"Damascus","cur":"Syrian Pound","name":"Syria","pop":16906283,"iso2":"sy"},{"capital":"Hamilton","cur":"Bermudian Dollar","name":"Bermuda","pop":63973,"iso2":"bm"},{"capital":"Amman","cur":"Jordanian Dinar","name":"Jordan","pop":9956011,"iso2":"jo"},{"capital":"Minsk","cur":"Belarussian Ruble","name":"Belarus","pop":9483499,"iso2":"by"},{"capital":"Rabat","cur":"Moroccan Dirham","name":"Morocco","pop":36029138,"iso2":"ma"},{"capital":"Stockholm","cur":"Swedish Krona","name":"Sweden","pop":10175214,"iso2":"se"},{"capital":"El-Aai","cur":"Moroccan Dirham","name":"Western Sahara","pop":652271,"iso2":"eh"},{"capital":"Luxembourg [Luxemburg/L","cur":"Euro","name":"Luxembourg","pop":607950,"iso2":"lu"},{"capital":"Budapest","cur":"Hungarian Forint","name":"Hungary","pop":9775564,"iso2":"hu"},{"capital":"Baku","cur":"Azerbaijan New Manat","name":"Azerbaijan","pop":9939800,"iso2":"az"},{"capital":"Nassau","cur":"Bahamian Dollar","name":"Bahamas","pop":385640,"iso2":"bs"},{"capital":"Palikir","cur":"US Dollar","name":"Micronesia, Federated States of","pop":112640,"iso2":"fm"},{"capital":"Nuku\u0027alofa","cur":"Tongan Pa\u0027anga","name":"Tonga","pop":103197,"iso2":"to"},{"capital":"Accra","cur":"Ghanaian Cedi","name":"Ghana","pop":29767108,"iso2":"gh"},{"capital":"Georgetown","cur":"Guyana Dollar","name":"Guyana","pop":779004,"iso2":"gy"},{"capital":"Riyadh","cur":"Saudi Riyal","name":"Saudi Arabia","pop":33699947,"iso2":"sa"},{"capital":"Oranjestad","cur":"Aruban Guilder","name":"Aruba","pop":105845,"iso2":"aw"},{"capital":"Roseau","cur":"East Caribbean Dollar","name":"Dominica","pop":71625,"iso2":"dm"},{"capital":"Kathmandu","cur":"Nepalese Rupee","name":"Nepal","pop":28087871,"iso2":"np"},{"capital":"Andorra la Vella","cur":"Euro","name":"Andorra","pop":77006,"iso2":"ad"},{"capital":"Quito","cur":"Ecuador Sucre","name":"Ecuador","pop":17084357,"iso2":"ec"},{"capital":"Stanley","cur":"Falkland Islands Pound","name":"Falkland Islands","pop":2840,"iso2":"fk"},{"capital":"Plymouth","cur":"East Caribbean Dollar","name":"Montserrat","pop":5900,"iso2":"ms"},{"capital":"Banjul","cur":"Gambian Dalasi","name":"Gambia","pop":2280102,"iso2":"gm"},{"capital":"Gaza","cur":"N/A","name":"Palestine","pop":4569087,"iso2":"ps"},{"capital":"Copenhagen","cur":"Danish Krone","name":"Denmark","pop":5793636,"iso2":"dk"},{"capital":"Longyearbyen","cur":"Norwegian Krone","name":"Svalbard and Jan Mayen","pop":2572,"iso2":"sj"},{"capital":"Suva","cur":"Fijian Dollar","name":"Fiji","pop":883483,"iso2":"fj"},{"capital":"Alofi","cur":"New Zealand Dollar","name":"Niue","pop":1624,"iso2":"nu"},{"capital":"Willemstad","cur":"Netherlands Antillean Guilder","name":"Netherlands Antilles","pop":227049,"iso2":"an"},{"capital":"Madrid","cur":"Euro","name":"Spain","pop":46796540,"iso2":"es"},{"capital":"Harare","cur":"Zimbabwe Dollar","name":"Zimbabwe","pop":14439018,"iso2":"zw"},{"capital":"Bratislava","cur":"Euro","name":"Slovakia","pop":5446771,"iso2":"sk"},{"capital":"Port Moresby","cur":"Papua New Guinea Kina","name":"Papua New Guinea","pop":8606316,"iso2":"pg"},{"capital":"Avarua","cur":"New Zealand Dollar","name":"Cook Islands","pop":17379,"iso2":"ck"},{"capital":"Khartum","cur":"Sudanese Pound","name":"Sudan","pop":41801533,"iso2":"sd"},{"capital":"Kyiv","cur":"Ukraine Hryvnia","name":"Ukraine","pop":44622516,"iso2":"ua"},{"capital":"Dushanbe","cur":"Tajik Somoni","name":"Tajikistan","pop":9100837,"iso2":"tj"},{"capital":"Malabo","cur":"CFA Franc BEAC","name":"Equatorial Guinea","pop":1308974,"iso2":"gq"},{"capital":"Dodoma","cur":"Tanzanian Shilling","name":"Tanzania","pop":56318348,"iso2":"tz"},{"capital":"N/A","cur":"East Caribbean Dollar","name":"Antarctica","pop":1106,"iso2":"aq"},{"capital":"Kuwait","cur":"Kuwaiti Dinar","name":"Kuwait","pop":4137309,"iso2":"kw"},{"capital":"Dalap-Uliga-Darrit","cur":"US Dollar","name":"Marshall Islands","pop":58413,"iso2":"mh"},{"capital":"Vientiane","cur":"Lao Kip","name":"Laos","pop":7061507,"iso2":"la"},{"capital":"Bridgetown","cur":"Barbados Dollar","name":"Barbados","pop":286641,"iso2":"bb"},{"capital":"Dublin","cur":"Euro","name":"Ireland","pop":4867309,"iso2":"ie"},{"capital":"Garapan","cur":"US Dollar","name":"Northern Mariana Islands","pop":56882,"iso2":"mp"},{"capital":"Cockburn Town","cur":"US Dollar","name":"Turks and Caicos Islands","pop":37665,"iso2":"tc"},{"capital":"Bissau","cur":"West African CFA franc","name":"Guinea-Bissau","pop":1874309,"iso2":"gw"},{"capital":"Castries","cur":"East Caribbean Dollar","name":"Saint Lucia","pop":181889,"iso2":"lc"}];
+const cm = {};
+COUNTRIES.forEach(function(c){ if(c.name) cm[c.name.toLowerCase()] = c; });
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const countryCard = document.getElementById('countryCard');
-        const messageBox = document.getElementById('messageBox');
-        const loading = document.getElementById('loading');
+document.getElementById('si').addEventListener('keypress', function(e){ if(e.key==='Enter') ps(); });
 
-        const flagImg = document.getElementById('flagImg');
-        const countryName = document.getElementById('countryName');
-        const capitalValue = document.getElementById('capitalValue');
-        const populationValue = document.getElementById('populationValue');
-        const currencyValue = document.getElementById('currencyValue');
+function qs(name){ document.getElementById('si').value = name; ps(); }
 
-        searchBtn.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-
-        async function performSearch() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-
-            countryCard.style.display = 'none';
-            messageBox.style.display = 'none';
-            loading.style.display = 'block';
-
-            try {
-                // Try fulltext search first
-                let response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}?fullText=true`);
-                
-                // If not found, fallback to partial search
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        response = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}`);
-                        if (!response.ok) {
-                             throw new Error("Country not found. Please check the spelling.");
-                        }
-                    } else {
-                        throw new Error("Failed to fetch data.");
-                    }
-                }
-
-                const data = await response.json();
-                const country = data[0]; // Take first match
-
-                // Populate data
-                flagImg.src = country.flags.svg;
-                flagImg.alt = `Flag of ${country.name.common}`;
-                countryName.textContent = country.name.common;
-                capitalValue.textContent = country.capital ? country.capital[0] : 'N/A';
-                populationValue.textContent = country.population.toLocaleString();
-                
-                if (country.currencies) {
-                    const currencyCode = Object.keys(country.currencies)[0];
-                    const currency = country.currencies[currencyCode];
-                    currencyValue.textContent = `${currency.name} (${currency.symbol})`;
-                } else {
-                    currencyValue.textContent = 'N/A';
-                }
-
-                loading.style.display = 'none';
-                countryCard.style.display = 'block';
-
-            } catch (error) {
-                loading.style.display = 'none';
-                showMessage(error.message, true);
-            }
-        }
-
-        function showMessage(msg, isError = false) {
-            messageBox.textContent = msg;
-            messageBox.className = `message ${isError ? 'error' : ''}`;
-            messageBox.style.display = 'block';
-        }
-    </script>
+function ps(){
+    var raw = document.getElementById('si').value.trim();
+    if(!raw) return;
+    var card = document.getElementById('card');
+    var msg  = document.getElementById('msg');
+    card.style.display = 'none';
+    msg.style.display  = 'none';
+    var c = cm[raw.toLowerCase()];
+    if(!c){
+        msg.innerHTML = 'No country found named <strong>' + raw + '</strong>. Please enter the exact name.';
+        msg.className = 'msg error';
+        msg.style.display = 'block';
+        return;
+    }
+    var fi = document.getElementById('fi');
+    if(c.iso2){
+        fi.src = 'https://flagcdn.com/w640/' + c.iso2.toLowerCase() + '.png';
+        fi.parentElement.style.display = 'flex';
+        fi.onerror = function(){ fi.parentElement.style.display = 'none'; };
+    } else {
+        fi.parentElement.style.display = 'none';
+    }
+    document.getElementById('cn').textContent = c.name;
+    document.getElementById('ca').textContent = (c.capital && c.capital !== 'N/A') ? c.capital : '-';
+    document.getElementById('po').textContent = c.pop ? Number(c.pop).toLocaleString() : '-';
+    document.getElementById('cu').textContent = (c.cur && c.cur !== 'N/A') ? c.cur.trim() : '-';
+    card.style.display = 'none';
+    void card.offsetWidth;
+    card.style.display = 'block';
+}
+</script>
 </body>
 </html>
+
+
